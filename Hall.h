@@ -22,6 +22,14 @@ public:
 
 	unsigned int getSeatCountInRow() const { return this->seatCountInRow; }
 
+	//Setters
+
+	void setNumber(unsigned int number) { this->number = number; }
+
+	void setRowCount(unsigned int rowCount) { this->rowCount = rowCount; }
+
+	void setSeatCountInRow(unsigned int seatCountInRow) { this->seatCountInRow = seatCountInRow; }
+
 	//Operators
 	Hall& operator= (const Hall& other);
 

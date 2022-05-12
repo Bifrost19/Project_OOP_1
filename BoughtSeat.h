@@ -1,5 +1,6 @@
 #ifndef BOUGHTSEAT_H
 #define BOUGHTSEAT_H
+#include <iostream>
 
 class BoughtSeat
 {
@@ -21,6 +22,8 @@ public:
 	//Operators:
 
 	bool operator== (const BoughtSeat& other);
+
+	friend std::ostream& operator<< (std::ostream& out, const BoughtSeat& boughtSeat);
 };
 #endif
 

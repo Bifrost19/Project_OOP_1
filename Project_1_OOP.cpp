@@ -4,151 +4,51 @@
 
 using namespace std;
 
-void copyEventsInBuffer(Event*& events, unsigned int eventCount)
+//Global variables
+Hall* halls = nullptr;
+unsigned int hallCount = 0;
+Event* events = nullptr;
+unsigned int eventCount = 0;
+
+void defineHalls()
 {
-	Event* buffer = new (nothrow) Event[eventCount];
-	if (!buffer) throw "Memory problem!";
+	//Halls:
+	hallCount = 5;
 
-	for (int i = 0; i < eventCount; i++)
-	{
-		buffer[i] = events[i];
-	}
+	Hall hall1 = Hall(1, 15, 30);
+	Hall hall2 = Hall(2, 20, 35);
+	Hall hall3 = Hall(3, 25, 40);
+	Hall hall4 = Hall(4, 40, 50);
+	Hall hall5 = Hall(5, 70, 60);
 
+	halls = new (nothrow) Hall[hallCount];
+	if (!halls) throw "Memory problem";
+
+	halls[0] = hall1;
+	halls[1] = hall2;
+	halls[2] = hall3;
+	halls[3] = hall4;
+	halls[4] = hall5;
+}
+
+void freeHeapMemory()
+{
+	// Delete all dynamically allocated global variables
+	delete[] halls;
 	delete[] events;
-	events = new (nothrow) Event[eventCount + 1];
-	if (!events) throw "Memory problem!";
-
-	for (int i = 0; i < eventCount; i++)
-	{
-		events[i] = buffer[i];
-	}
-
-	delete[] buffer;
 }
 
-void addNewEvent(const unsigned int hallCount, const Hall* halls, Event*& events, unsigned int& eventCount)
-{
-	cout << endl << "---------Procedure for addition of event-----------------" << endl;
-	Date date;
-	char name[100];
-	unsigned int hallNumber;
-
-	//Three inputs
-	cout << "Enter the date: ";
-	cin >> date;
-
-	cout << "Enter the name: ";
-	cin.ignore().getline(name, 100);
-
-	cout << "Enter the number of the hall: ";
-	do
-	{
-		cin >> hallNumber;
-	} while (hallNumber <= 0 || hallNumber > hallCount);
-
-	cin.ignore();
-
-	Hall hall = halls[hallNumber - 1];
-
-	Event event = Event(date, name, hall);
-
-	//Check if there are already existing events
-	if (eventCount == 0)
-	{	
-		events = new (nothrow) Event[eventCount + 1];
-		if (!events) throw "Memory problem!";
-		events[eventCount] = event;
-		eventCount++;
-		cout << "The event was added successfully!" << endl;
-
-	}
-	else
-	{
-		for (int i = 0; i < eventCount; i++)
-		{
-			if (events[i] == event)
-			{
-				cout << "There is another event with these parameters!" << endl;
-				return;
-			}
-		}
-
-		copyEventsInBuffer(events, eventCount);
-		events[eventCount] = event;
-		eventCount++;
-		cout << "The event was added successfully!" << endl;
-	}
-}
-
-bool isThereEventWithSameNameAndDate(const Event& event, const char* name, Date date)
-{
-	//cout << event.getName() << " " << name << "|" << event.getDate() << " " << date << endl;
-	return (!strcmp(event.getName(), name) && event.getDate() == date);
-}
-
-int getIndexOfEvent(Event* events, unsigned int eventCount)
-{
-	char name[100];
-	Date date;
-	int eventIndex = -1;
-
-	cout << "Enter the name of the event: ";
-	cin.getline(name, 100);
-
-	cout << "Enter the date: ";
-	cin >> date;
-
-	//Finds the event matching the arguments
-	for (int i = 0; i < eventCount; i++)
-	{
-
-		if (isThereEventWithSameNameAndDate(events[i], name, date))
-		{
-			return i;
-		}
-
-	}
-
-	return -1; //If there are not events with these parameters
-}
-
-Reservation createReservation(Event* events, unsigned int eventIndex)
-{
-	unsigned int row;
-	unsigned int seat;
-	char password[100];
-
-	//Three inputs for reservation
-
-	cout << "Enter row: ";
-	do
-	{
-		cin >> row;
-	} while (row < 0 && row > events[eventIndex].getHall().getRowCount());
-
-	cout << "Enter seat: ";
-	do
-	{
-		cin >> seat;
-	} while (seat < 0 && seat > events[eventIndex].getHall().getSeatCountInRow());
-
-	cout << "Enter the password: ";
-	cin.ignore().getline(password, 100);
-
-
-	//Add reservation to reservations of the event
-	return Reservation(row, seat, password);
-}
-
+//Convertation functions
 unsigned int toInt(char string[])
 {
 	int stringLength = strlen(string);
-	int num = 0;
+	unsigned int num = 0;
 
 	for (int i = 0; i < stringLength; i++)
 	{
 		num += (string[i] - '0') * pow(10, stringLength - i - 1);
 	}
+
 	return num;
 }
 
@@ -157,7 +57,7 @@ char* toString(unsigned int num)
 	int iterator = 0;
 	int numCopy = num;
 	int numLength = 0;
-	
+
 	while (numCopy > 0)
 	{
 		numCopy /= 10;
@@ -198,7 +98,7 @@ Date convertFromStringToDate(char dateStr[])
 			if (dateStr[i] == ' ')
 			{
 				partialDateStr[iterator] = '\0';
-				year = toInt(partialDateStr);			
+				year = toInt(partialDateStr);
 				strcpy_s(partialDateStr, "");
 				intervalCounter++;
 				iterator = 0;
@@ -244,12 +144,395 @@ char* convertFromDateToString(Date date)
 	strcat_s(dateStr, toString(date.getDay()));
 
 	char* dateStrP = new (nothrow) char[strlen(dateStr) + 1];
-    if (!dateStrP) throw "Memory problem!";
+	if (!dateStrP) throw "Memory problem!";
 	strcpy_s(dateStrP, strlen(dateStr) + 1, dateStr);
 	return dateStrP;
 }
 
-bool isThereExistingReservationWithRowAndSeat(Event* events, unsigned int eventIndex, const Reservation& reservation)
+//Save & Load Halls & Events from files
+void saveEventsToFile()
+{
+	ofstream eventWFile("events.txt");
+	if (!eventWFile.is_open()) throw "The file can't be opened!";
+
+	eventWFile << eventCount << endl;
+	eventWFile << "--------------------------------------------" << endl;
+	int eventIterator = 0;
+
+	while (eventIterator < eventCount)
+	{
+		eventWFile << events[eventIterator].getDate() << endl;
+		eventWFile << events[eventIterator].getName() << endl;
+		eventWFile << events[eventIterator].getHall() << endl;
+
+		eventWFile << events[eventIterator].getReservationCount() << endl;
+		unsigned int reservationCount = events[eventIterator].getReservationCount();
+		for (int i = 0; i < reservationCount; i++)
+		{
+			eventWFile << events[eventIterator].getReservations()[i] << endl;
+		}
+
+		eventWFile << events[eventIterator].getBoughtSeatCount() << endl;
+		unsigned int boughtSeatCount = events[eventIterator].getBoughtSeatCount();
+		for (int i = 0; i < boughtSeatCount; i++)
+		{
+			eventWFile << events[eventIterator].getBoughtSeats()[i] << endl;
+		}
+		eventWFile << "--------------------------------------------" << endl;
+		eventIterator++;
+	}
+	eventWFile.close();
+}
+
+void readEventsFromFile()
+{
+	ifstream eventRFile("events.txt");
+	if (!eventRFile.is_open()) throw "The file can't be opened!";
+
+	eventRFile >> eventCount;
+
+	events = new (nothrow) Event[eventCount];
+	if (!events) throw "Memory prblem!";
+
+	int eventIterator = 0;
+
+	eventRFile.ignore();
+	char array[100];
+	eventRFile.getline(array, 100, '\n');
+	strcpy_s(array, "");
+
+	unsigned int invalidEventCount = 0;
+
+	while (eventIterator < eventCount)
+	{
+		//Date
+		eventRFile.getline(array, 10, '/');
+		unsigned int year = toInt(array);
+		strcpy_s(array, "");
+
+		eventRFile.getline(array, 10, '/');
+		unsigned int month = toInt(array);
+		strcpy_s(array, "");
+
+		eventRFile.getline(array, 10, '\n');
+		unsigned int day = toInt(array);
+		strcpy_s(array, "");
+
+		//Name
+		eventRFile.getline(array, 100, '\n');
+		char* name = new (nothrow) char[strlen(array) + 1];
+		if (!name) throw "Memory problem!";
+		strcpy_s(name, strlen(array) + 1, array);
+		strcpy_s(array, "");
+
+		//Hall
+		Hall hall;
+
+		eventRFile.getline(array, 10, '|');
+		hall.setNumber(toInt(array));
+		strcpy_s(array, "");
+
+		eventRFile.getline(array, 10, '|');
+		hall.setRowCount(toInt(array));
+		strcpy_s(array, "");
+
+		eventRFile.getline(array, 10, '|');
+		hall.setSeatCountInRow(toInt(array));
+		strcpy_s(array, "");
+
+		Event event = Event(Date(year, month, day), name, hall);
+
+		//Reservations
+		unsigned int reservationCount;
+		eventRFile >> reservationCount;
+		eventRFile.ignore();
+
+		for (int i = 0; i < reservationCount; i++)
+		{
+			//Row
+			eventRFile.getline(array, 10, '/');
+			unsigned int row = toInt(array);
+			strcpy_s(array, "");
+
+			//Seat
+			eventRFile.getline(array, 10, '|');
+			unsigned int seat = toInt(array);
+			strcpy_s(array, "");
+
+			//Password
+			eventRFile.getline(array, 100, '|');
+			char* password = new (nothrow) char[strlen(array) + 1];
+			if (!password) throw "Memory problem!";
+			strcpy_s(password, strlen(array) + 1, array);
+			strcpy_s(array, "");
+
+			//Note
+			eventRFile.getline(array, 100, '\n');
+			char* note = new (nothrow) char[strlen(array) + 1];
+			if (!note) throw "Memory problem!";
+			strcpy_s(note, strlen(array) + 1, array);
+			strcpy_s(array, "");
+
+			Reservation reservation = Reservation(row, seat, password, note);
+			//Check if there is same reservation
+			bool isThereSameReservation = false;
+
+			for (int j = 0; j < i; j++)
+			{
+				if (reservation.getRow() == event.getReservations()[j].getRow() &&
+					reservation.getSeat() == event.getReservations()[j].getSeat())
+				{
+					isThereSameReservation = true;
+					break;
+				}
+			}
+
+			if(!isThereSameReservation)
+			event.addNewReservation(reservation);
+		}
+
+		//Bought seats
+		unsigned int boughtSeatCount;
+		eventRFile >> boughtSeatCount;
+		eventRFile.ignore();
+
+		for (int i = 0; i < boughtSeatCount; i++)
+		{
+			//Row
+			eventRFile.getline(array, 10, '|');
+			unsigned int row = toInt(array);
+			strcpy_s(array, "");
+
+			//Seat
+			eventRFile.getline(array, 10, '\n');
+			unsigned int seat = toInt(array);
+			strcpy_s(array, "");
+
+			BoughtSeat boughtSeat = BoughtSeat(row, seat);
+
+			//Check if there is same bought seat
+			bool isThereSameBoughtSeat = false;
+
+			for (int j = 0; j < i; j++)
+			{
+				if (boughtSeat.getRow() == event.getBoughtSeats()[j].getRow() &&
+					boughtSeat.getSeat() == event.getBoughtSeats()[j].getSeat())
+				{
+					isThereSameBoughtSeat = true;
+					break;
+				}
+			}
+
+			if (!isThereSameBoughtSeat)
+				event.addBoughtSeat(boughtSeat);
+		}
+
+		eventRFile.getline(array, 100, '\n');
+		strcpy_s(array, "");
+
+		//Check if there is event with the same parameters
+		bool isThereSameEvent = false;
+
+		for (int i = 0; i < eventIterator; i++)
+		{
+			if (events[i].getDate() == event.getDate() && events[i].getHall() == event.getHall())
+			{
+				isThereSameEvent = true;
+				invalidEventCount++;
+				break;
+			}
+		}
+
+		if (!isThereSameEvent)
+		events[eventIterator - invalidEventCount] = event;
+
+		eventIterator++;
+	}
+
+	eventCount -= invalidEventCount;
+	eventRFile.close();
+}
+
+void saveHallsToFile()
+{
+	ofstream hallsWFile("halls.txt");
+	if (!hallsWFile.is_open()) throw "The file can't be opened";
+
+	//Saving the halls
+	int hallsIterator = 0;
+
+	hallsWFile << hallCount << endl;
+
+	while (hallsIterator < hallCount)
+	{
+		hallsWFile << halls[hallsIterator++] << endl;
+	}
+
+	hallsWFile.close();
+}
+
+void readHallsFromFile()
+{
+	ifstream hallsRFile("halls.txt");
+	if (!hallsRFile.is_open()) throw "The file can't be opened";
+
+	//Reading halls
+	hallsRFile >> hallCount;
+	halls = new (nothrow) Hall[hallCount];
+	if (!halls) throw "Memory problem!";
+	unsigned int hallsIterator = 0;
+	unsigned int invalidHallCount = 0;
+	
+	while (hallsIterator < hallCount)
+	{
+		char array[10];
+		//Number
+		hallsRFile.ignore().getline(array, 10,'|');
+		unsigned int number = toInt(array);
+		strcpy_s(array, "");
+
+		//RowCount
+		hallsRFile.getline(array, 10, '|');
+		unsigned int rowCount = toInt(array);
+		strcpy_s(array, "");
+
+		//SeatCountInRow
+		hallsRFile.getline(array, 10, '|');
+		unsigned int seatCountInRow = toInt(array);
+
+		Hall hall = Hall(number, rowCount, seatCountInRow);
+
+		//Check if there is same hall
+		bool isThereSameHall = false;
+
+		for (int i = 0; i < hallsIterator; i++)
+		{
+			if (hall.getNumber() == halls[i].getNumber())
+			{
+				isThereSameHall = true;
+				invalidHallCount++;
+				break;
+			}
+		}
+
+		if (!isThereSameHall)
+			halls[hallsIterator] = hall;
+
+		hallsIterator++;
+	}
+
+	hallCount -= invalidHallCount;
+	hallsRFile.close();
+}
+
+void saveAndLoadHallsAndEventsFromFiles()
+{
+	fstream hallsFile("halls.txt", ios::in);
+	if (!hallsFile.is_open())
+	{
+		defineHalls();
+		saveHallsToFile();
+	}
+	else
+	{
+		readHallsFromFile();
+		hallsFile.close();
+	}
+
+	fstream eventFile("events.txt", ios::in);
+	if (!eventFile.is_open()) saveEventsToFile();
+	else
+	{
+		readEventsFromFile();
+		eventFile.close();
+	}
+}
+
+//Help functions
+void copyEventsInBuffer()
+{
+	Event* buffer = new (nothrow) Event[eventCount];
+	if (!buffer) throw "Memory problem!";
+
+	for (int i = 0; i < eventCount; i++)
+	{
+		buffer[i] = events[i];
+	}
+
+	delete[] events;
+	events = new (nothrow) Event[eventCount + 1];
+	if (!events) throw "Memory problem!";
+
+	for (int i = 0; i < eventCount; i++)
+	{
+		events[i] = buffer[i];
+	}
+
+	delete[] buffer;
+}
+
+bool isThereEventWithSameNameAndDate(const Event& event, const char* name, Date date)
+{
+	//cout << event.getName() << " " << name << "|" << event.getDate() << " " << date << endl;
+	return (!strcmp(event.getName(), name) && event.getDate() == date);
+}
+
+int getIndexOfEvent()
+{
+	char name[100];
+	Date date;
+	int eventIndex = -1;
+
+	cout << "Enter the name of the event: ";
+	cin.getline(name, 100);
+
+	cout << "Enter the date: ";
+	cin >> date;
+	cin.ignore();
+
+	//Finds the event matching the arguments
+	for (int i = 0; i < eventCount; i++)
+	{
+
+		if (isThereEventWithSameNameAndDate(events[i], name, date))
+		{
+			return i;
+		}
+
+	}
+
+	return -1; //If there are not events with these parameters
+}
+
+Reservation createReservation(Event* events, unsigned int eventIndex)
+{
+	unsigned int row;
+	unsigned int seat;
+	char password[100];
+
+	//Three inputs for reservation
+
+	cout << "Enter row: ";
+	do
+	{
+		cin >> row;
+	} while (row < 0 && row > events[eventIndex].getHall().getRowCount());
+
+	cout << "Enter seat: ";
+	do
+	{
+		cin >> seat;
+	} while (seat < 0 && seat > events[eventIndex].getHall().getSeatCountInRow());
+
+	cout << "Enter the password: ";
+	cin.ignore().getline(password, 100);
+
+
+	//Add reservation to reservations of the event
+	return Reservation(row, seat, password);
+}
+
+bool isThereExistingReservationWithRowAndSeat(unsigned int eventIndex, const Reservation& reservation)
 {
 	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
 	{
@@ -260,7 +543,7 @@ bool isThereExistingReservationWithRowAndSeat(Event* events, unsigned int eventI
 	return false;
 }
 
-bool isThereExistingReservation(Event* events, unsigned int eventIndex, Reservation& reservation)
+bool isThereExistingReservation(unsigned int eventIndex, Reservation& reservation)
 {
 	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
 	{
@@ -274,11 +557,84 @@ bool isThereExistingReservation(Event* events, unsigned int eventIndex, Reservat
 	return false;
 }
 
-void reserveTicket(Event* events, unsigned int eventCount)
+void transformReservationInBoughtSeat(unsigned int eventIndex, const Reservation& reservation, const BoughtSeat& boughtSeat)
+{
+	char password[100];
+
+	cout << "This seat is reserved! Enter the password for the reservation: ";
+	cin.ignore().getline(password, 100);
+
+	if (strcmp(password, reservation.getPassword()))
+	{
+		cout << "Incorrect password!" << endl;
+		return;
+	}
+
+	events[eventIndex].removeReservation(reservation);
+	events[eventIndex].addBoughtSeat(boughtSeat);
+}
+
+//Main functions
+void addNewEvent()
+{
+	cout << endl << "---------Procedure for addition of event-----------------" << endl;
+	Date date;
+	char name[100];
+	unsigned int hallNumber;
+
+	//Three inputs
+	cout << "Enter the date: ";
+	cin >> date;
+
+	cout << "Enter the name: ";
+	cin.ignore().getline(name, 100);
+
+	cout << "Enter the number of the hall: ";
+	do
+	{
+		cin >> hallNumber;
+	} while (hallNumber <= 0 || hallNumber > hallCount);
+
+	cin.ignore();
+
+	Hall hall = halls[hallNumber - 1];
+
+	Event event = Event(date, name, hall);
+
+	//Check if there are already existing events
+	if (eventCount == 0)
+	{	
+		events = new (nothrow) Event[eventCount + 1];
+		if (!events) throw "Memory problem!";
+		events[eventCount] = event;
+		eventCount++;
+		cout << "The event was added successfully!" << endl;
+		saveEventsToFile();
+	}
+	else
+	{
+		for (int i = 0; i < eventCount; i++)
+		{
+			if (events[i] == event)
+			{
+				cout << "There is another event with these parameters!" << endl;
+				return;
+			}
+		}
+
+		copyEventsInBuffer();
+		events[eventCount] = event;
+		eventCount++;
+		cout << "The event was added successfully!" << endl;
+		saveEventsToFile();
+	}
+}
+
+void reserveTicket()
 {
 	cout << endl << "---------Procedure for reservation-----------------" << endl;
 
-	int eventIndex = getIndexOfEvent(events, eventCount);
+	int eventIndex = getIndexOfEvent();
 
 	//If there is no such event returns without addition of reservation
 	if (eventIndex == -1)
@@ -307,7 +663,7 @@ void reserveTicket(Event* events, unsigned int eventCount)
 	reservation = Reservation(reservation.getRow(), reservation.getSeat(), reservation.getPassword(), note);
 
 	//Check if there is already a reservation with these parameters
-	if (isThereExistingReservationWithRowAndSeat(events, eventIndex, reservation))
+	if (isThereExistingReservationWithRowAndSeat(eventIndex, reservation))
 	{
 		cout << "There is already such reservation!" << endl;
 		return;
@@ -315,15 +671,16 @@ void reserveTicket(Event* events, unsigned int eventCount)
 
 	events[eventIndex].addNewReservation(reservation);
 	cout << "The reservation was made successfully!" << endl;
+	saveEventsToFile();
 }
 
-void cancelReservation(Event* events, unsigned int eventCount)
+void cancelReservation()
 {
 	cout << endl << "---------Procedure for cancelation of reservation-----------------" << endl;
 
 	//cin.ignore();
 
-	int eventIndex = getIndexOfEvent(events, eventCount);
+	int eventIndex = getIndexOfEvent();
 
 	//If there is no such event returns without addition of reservation
 	if (eventIndex == -1)
@@ -335,7 +692,7 @@ void cancelReservation(Event* events, unsigned int eventCount)
 	Reservation reservation = createReservation(events, eventIndex);
 
 	//Check if there is already a reservation with these parameters
-	if (!isThereExistingReservation(events, eventIndex, reservation))
+	if (!isThereExistingReservation(eventIndex, reservation))
 	{
 		cout << "There is no such reservation or the password is incorrect!" << endl;
 		return;
@@ -343,66 +700,14 @@ void cancelReservation(Event* events, unsigned int eventCount)
 
 	events[eventIndex].removeReservation(reservation);
 	cout << "The reservation was cancelled successfully!" << endl;
+	saveEventsToFile();
 }
 
-void printFreeSeatsReport(Event* events, unsigned int eventCount)
-{
-	cout << endl << "---------Report for free seats-----------------" << endl;
-
-
-	int eventIndex = getIndexOfEvent(events, eventCount);
-
-	//If there is no such event returns without addition of reservation
-	if (eventIndex == -1)
-	{
-		cout << "There is no such event!" << endl;
-		return;
-	}
-
-	unsigned int freeSeatCount = (events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow())
-								  - events[eventIndex].getReservationCount() - events[eventIndex].getBoughtSeatCount();
-
-
-	char fileName[100] = "report-freeseats-";
-	strcat_s(fileName, events[eventIndex].getName());
-	strcat_s(fileName, "-");
-	strcat_s(fileName, convertFromDateToString(events[eventIndex].getDate()));
-	strcat_s(fileName, ".txt");
-
-	ofstream freeSeatsReportFile(fileName);
-
-	if (!freeSeatsReportFile.is_open()) throw "A file with such name can't be opened!";
-
-	freeSeatsReportFile << "*Report for free seats*" << endl;
-	freeSeatsReportFile << events[eventIndex].getName() << "|" << convertFromDateToString(events[eventIndex].getDate()) << ":" << endl;
-	freeSeatsReportFile << "Count of free seats: " << freeSeatCount << " of " <<
-							(events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow()) << endl;
-
-	freeSeatsReportFile.close();
-}
-
-void transformReservationInBoughtSeat(Event* events, unsigned int eventIndex, const Reservation& reservation, const BoughtSeat& boughtSeat)
-{
-	char password[100];
-
-	cout << "This seat is reserved! Enter the password for the reservation: ";
-	cin.ignore().getline(password, 100);
-
-	if (strcmp(password, reservation.getPassword()))
-	{
-		cout << "Incorrect password!" << endl;
-		return;
-	}
-
-	events[eventIndex].removeReservation(reservation);
-	events[eventIndex].addBoughtSeat(boughtSeat);
-}
-
-void buyTicket(Event* events, unsigned int eventCount)
+void buyTicket()
 {
 	cout << endl << "---------Procedure for buying a ticket-----------------" << endl;
 
-	int eventIndex = getIndexOfEvent(events, eventCount);
+	int eventIndex = getIndexOfEvent();
 
 	//If there is no such event returns without addition of reservation
 	if (eventIndex == -1)
@@ -439,14 +744,15 @@ void buyTicket(Event* events, unsigned int eventCount)
 		}
 	}
 
-	//Check the seat is already reserved
+	//Check if the seat is already reserved
 	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
 	{
 		if (events[eventIndex].getReservations()[i].getRow() == potentialBoughtSeat.getRow()
 			&& events[eventIndex].getReservations()[i].getSeat() == potentialBoughtSeat.getSeat())
 		{
-			transformReservationInBoughtSeat(events, eventIndex, events[eventIndex].getReservations()[i], potentialBoughtSeat);
+			transformReservationInBoughtSeat(eventIndex, events[eventIndex].getReservations()[i], potentialBoughtSeat);
 			cout << "The ticket was bought successfully!" << endl;
+			saveEventsToFile();
 			return;
 		}
 	}
@@ -455,10 +761,47 @@ void buyTicket(Event* events, unsigned int eventCount)
 	events[eventIndex].addBoughtSeat(potentialBoughtSeat);
 
 	cout << "The ticket was bought successfully!" << endl;
+	saveEventsToFile();
 	cin.ignore();
 }
 
-void printReservationReport(Event* events, unsigned int eventCount)
+void printFreeSeatsReport()
+{
+	cout << endl << "---------Report for free seats-----------------" << endl;
+
+
+	int eventIndex = getIndexOfEvent();
+
+	//If there is no such event returns without addition of reservation
+	if (eventIndex == -1)
+	{
+		cout << "There is no such event!" << endl;
+		return;
+	}
+
+	unsigned int freeSeatCount = (events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow())
+								  - events[eventIndex].getReservationCount() - events[eventIndex].getBoughtSeatCount();
+
+
+	char fileName[100] = "report-freeseats-";
+	strcat_s(fileName, events[eventIndex].getName());
+	strcat_s(fileName, "-");
+	strcat_s(fileName, convertFromDateToString(events[eventIndex].getDate()));
+	strcat_s(fileName, ".txt");
+
+	ofstream freeSeatsReportFile(fileName);
+
+	if (!freeSeatsReportFile.is_open()) throw "A file with such name can't be opened!";
+
+	freeSeatsReportFile << "*Report for free seats*" << endl;
+	freeSeatsReportFile << events[eventIndex].getName() << "|" << convertFromDateToString(events[eventIndex].getDate()) << ":" << endl;
+	freeSeatsReportFile << "Count of free seats: " << freeSeatCount << " of " <<
+							(events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow()) << endl;
+
+	freeSeatsReportFile.close();
+}
+
+void printReservationReport()
 {
 	cout << endl << "---------Report for reservations-----------------" << endl;
 
@@ -489,7 +832,10 @@ void printReservationReport(Event* events, unsigned int eventCount)
 
 			for (int j = 0; j < events[i].getReservationCount(); j++)
 			{
-				reservationReport << events[i].getReservations()[j];
+				reservationReport << (j + 1) << ". " << "Row: " << events[i].getReservations()[j].getRow() << "|Seat: "
+								  << events[i].getReservations()[j].getSeat() << "|Password: "
+								  << events[i].getReservations()[j].getPassword() << "|Note: "
+								  << events[i].getReservations()[j].getNote() << endl;
 			}
 			reservationReport << "-----------------------------------" << endl;
 		}
@@ -518,7 +864,10 @@ void printReservationReport(Event* events, unsigned int eventCount)
 
 					for (int j = 0; j < events[i].getReservationCount(); j++)
 					{
-						reservationReport << events[i].getReservations()[j];
+						reservationReport << (j + 1) << ". " << "Row: " << events[i].getReservations()[j].getRow() << "|Seat: "
+							<< events[i].getReservations()[j].getSeat() << "|Password: "
+							<< events[i].getReservations()[j].getPassword() << "|Note: "
+							<< events[i].getReservations()[j].getNote() << endl;
 					}
 					reservationReport << "-----------------------------------" << endl;
 				}
@@ -564,7 +913,10 @@ void printReservationReport(Event* events, unsigned int eventCount)
 
 			for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
 			{
-				reservationReport << (i + 1) << ". " << events[eventIndex].getReservations()[i];
+				reservationReport << (i + 1) << ". " << "Row: " << events[eventIndex].getReservations()[i].getRow() << "|Seat: "
+					<< events[eventIndex].getReservations()[i].getSeat() << "|Password: "
+					<< events[eventIndex].getReservations()[i].getPassword() << "|Note: "
+					<< events[eventIndex].getReservations()[i].getNote() << endl;
 			}
 			reservationReport << "-----------------------------------" << endl;
 
@@ -573,7 +925,7 @@ void printReservationReport(Event* events, unsigned int eventCount)
 	}
 }
 
-void printBoughtTicketsReport(Event* events, unsigned int eventCount, const Hall* halls, const unsigned int hallCount)
+void printBoughtTicketsReport()
 {
 	cout << endl << "---------Report for bought tickets in period-----------------" << endl;
 
@@ -596,6 +948,8 @@ void printBoughtTicketsReport(Event* events, unsigned int eventCount, const Hall
 	{
 		cin >> secondDate;
 	} while (firstDate > secondDate);
+
+	cin.ignore();
 
 	//Creating the file
 	ofstream boughtTicketsReportFile;
@@ -672,8 +1026,8 @@ void printBoughtTicketsReport(Event* events, unsigned int eventCount, const Hall
 	}
 }
 
-//Bonus
-void printMostWatchedEventsReport(Event* events, unsigned int eventCount)
+//Bonus functions
+void printMostWatchedEventsReport()
 {
 	cout << endl << "---------Report for most watched events-----------------" << endl;
 
@@ -725,7 +1079,7 @@ void printMostWatchedEventsReport(Event* events, unsigned int eventCount)
 	mostWatchedEventsReportFile.close();
 }
 
-void printEventsWithUnder10PercentReport(Event* events, unsigned int eventCount)
+void printEventsWithUnder10PercentReport()
 {
 	cout << endl << "---------Report for events with under 10% attendance-----------------" << endl;
 
@@ -741,6 +1095,8 @@ void printEventsWithUnder10PercentReport(Event* events, unsigned int eventCount)
 	{
 		cin >> secondDate;
 	} while (firstDate > secondDate);
+
+	cin.ignore();
 
 	ofstream eventsWithUnder10PercentReportFile("report-eventsWithUnder10PercentAttendance.txt");
 	if (!eventsWithUnder10PercentReportFile.is_open()) throw "A file with such name can't be opened!";
@@ -766,58 +1122,59 @@ void printEventsWithUnder10PercentReport(Event* events, unsigned int eventCount)
 	eventsWithUnder10PercentReportFile.close();
 }
 
-int main()
+//Dialogue functions
+void printCommandList()
 {
-	//Halls:
-	unsigned int hallCount = 5;
-
-	Hall hall1 = Hall(1, 15, 30);
-	Hall hall2 = Hall(2, 20, 35);
-	Hall hall3 = Hall(3, 25, 40);
-	Hall hall4 = Hall(4, 40, 50);
-	Hall hall5 = Hall(5, 70, 60);
-
-	Hall* halls = new (nothrow) Hall[hallCount];
-	if (!halls) throw "Memory problem";
-
-	halls[0] = hall1;
-	halls[1] = hall2;
-	halls[2] = hall3;
-	halls[3] = hall4;
-	halls[4] = hall5;
-
-	Event* events = nullptr;
-	unsigned int eventCount = 0;
-
-	addNewEvent(hallCount, halls, events, eventCount);
-	addNewEvent(hallCount, halls, events, eventCount);
-	//addNewEvent(hallCount, halls, events, eventCount);
-
-	events[0].addNewReservation(Reservation(1, 3, "12", "34"));
-	events[0].addNewReservation(Reservation(2, 4, "56", "78"));
-	//events[1].addNewReservation(Reservation(5, 6, "90", "123"));
-
-	buyTicket(events, eventCount);
-	//buyTicket(events, eventCount);
-	//buyTicket(events, eventCount);
-
-	//printEventsWithUnder10PercentReport(events, eventCount);
-	printMostWatchedEventsReport(events, eventCount);
-	//buyTicket(events, eventCount);
-	//buyTicket(events, eventCount);
-	//cancelReservation(events, eventCount);
-	//printFreeSeatsReport(events, eventCount);
-	//printBoughtTicketsReport(events, eventCount, halls, hallCount);
-
-	//events[1].addNewReservation(Reservation(4, 6, "123", "34456"));
-	//events[1].addNewReservation(Reservation(8, 3, "556", "7878"));
-	//events[1].addNewReservation(Reservation(1, 4, "980", "12343"));
-	//buyTicket(events, eventCount);
-	//buyTicket(events, eventCount);
-	//reserveTicket(events, eventCount);
-	//cancelReservation(events, eventCount);
-	//printReservationReport(events, eventCount);
-
-	return 0;
+	cout << "list / clear / stop / add new event / reserve ticket / cancel reservation / buy ticket" << endl;
+	cout << "print free seats report / print reservation report / print bought tickets report" << endl;
+	cout << "print most watched report / print under 10 % report" << endl;
 }
 
+void executeCommand(char command[])
+{
+	if (!strcmp(command, "list"))
+		printCommandList();
+	else if (!strcmp(command, "clear"))
+		system("cls");
+	else if (!strcmp(command, "stop"))
+		return;
+	else if (!strcmp(command, "add new event"))
+		addNewEvent();
+	else if (!strcmp(command, "reserve ticket"))
+		reserveTicket();
+	else if (!strcmp(command, "cancel reservation"))
+		cancelReservation();
+	else if (!strcmp(command, "buy ticket"))
+		buyTicket();
+	else if (!strcmp(command, "print free seats report"))
+		printFreeSeatsReport();
+	else if (!strcmp(command, "print reservation report"))
+		printReservationReport();
+	else if (!strcmp(command, "print bought tickets report"))
+		printBoughtTicketsReport();
+	else if (!strcmp(command, "print most watched report"))
+		printMostWatchedEventsReport();
+	else if (!strcmp(command, "print under 10 % report"))
+		printEventsWithUnder10PercentReport();
+	else
+		cout << "Invalid command!" << endl;
+}
+
+int main()
+{
+	saveAndLoadHallsAndEventsFromFiles();
+
+	char command[100];
+	do
+	{
+		cout << endl << "Type a command (use 'list' for help)" << endl;
+		cout << ">";
+		cin.getline(command, 100);
+		executeCommand(command);
+	} while (strcmp(command, "stop"));
+
+	saveEventsToFile();
+	saveHallsToFile();
+	freeHeapMemory();
+	return 0;
+}

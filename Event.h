@@ -44,6 +44,10 @@ public:
 
 	void setReservations(Reservation* reservations, unsigned int reservationCount);
 
+	void setReservationCount(unsigned int reservationCount) { this->reservationCount = reservationCount; }
+
+	void setBoughtSeatCount(unsigned int boughtSeatCount) { this->boughtSeatCount = boughtSeatCount; }
+
 	//Operators
 
 	Event& operator= (const Event& other);

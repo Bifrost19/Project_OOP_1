@@ -81,6 +81,6 @@ bool Reservation::operator== (const Reservation& other)
 
 std::ostream& operator<< (std::ostream& out, const Reservation& reservation)
 {
-	out << reservation.row << "/" << reservation.seat << "|" << reservation.password << "|" << reservation.note << std::endl;
+	out << reservation.row << "/" << reservation.seat << "|" << reservation.password << "|" << reservation.note;
 	return out;
 }

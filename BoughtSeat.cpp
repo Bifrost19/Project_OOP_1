@@ -17,3 +17,9 @@ bool BoughtSeat::operator== (const BoughtSeat& other)
 {
 	return (this->row == other.row && this->seat == other.seat);
 }
+
+std::ostream& operator<< (std::ostream& out, const BoughtSeat& boughtSeat)
+{
+	out << boughtSeat.row << "|" << boughtSeat.seat;
+	return out;
+}

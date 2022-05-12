@@ -55,6 +55,6 @@ std::istream& operator>> (std::istream& in, Hall& hall)
 
 std::ostream& operator<< (std::ostream& out, const Hall& hall)
 {
-	out << hall.number << "|" << hall.rowCount << "|" << hall.seatCountInRow;
+	out << hall.number << "|" << hall.rowCount << "|" << hall.seatCountInRow << "|";
 	return out;
 }
