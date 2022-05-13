@@ -18,6 +18,10 @@ private:
 	unsigned int boughtSeatCount;
 
 public:
+	//Static variables
+	static Event* events;
+	static unsigned int eventCount;
+
 	//Constructors && Destructor
 	Event();
 

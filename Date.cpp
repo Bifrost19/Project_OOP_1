@@ -46,17 +46,6 @@ Date::Date(unsigned int year, unsigned int month, unsigned int day)
 	this->day = day;
 }
 
-Date& Date::operator= (const Date& other)
-{
-	if (this != &other)
-	{
-		this->year = other.year;
-		this->month = other.month;
-		this->day = other.day;
-	}
-	return *this;
-}
-
 bool Date::operator== (const Date& other)
 {
 	return (this->year == other.year && this->month == other.month && this->day == other.day);

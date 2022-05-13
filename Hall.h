@@ -10,6 +10,10 @@ private:
 	unsigned int seatCountInRow;
 	
 public:
+	//Static variables
+	static Hall* halls;
+	static unsigned int hallCount;
+
 	//Constructors
 	Hall();
 
@@ -31,8 +35,6 @@ public:
 	void setSeatCountInRow(unsigned int seatCountInRow) { this->seatCountInRow = seatCountInRow; }
 
 	//Operators
-	Hall& operator= (const Hall& other);
-
 	bool operator== (const Hall& other);
 
 	friend std::istream& operator>> (std::istream& in, Hall& hall);

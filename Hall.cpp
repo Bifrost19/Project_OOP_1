@@ -19,17 +19,6 @@ Hall::Hall(unsigned int number, unsigned int rowCount, unsigned int seatCountInR
 	this->seatCountInRow = seatCountInRow;
 }
 
-Hall& Hall::operator= (const Hall& other)
-{
-	if (this != &other)
-	{
-		this->number = other.number;
-		this->rowCount = other.rowCount;
-		this->seatCountInRow = other.seatCountInRow;
-	}
-	return *this;
-}
-
 bool Hall::operator== (const Hall& other)
 {
 	return (this->number == other.number && this->rowCount == other.rowCount && this->seatCountInRow == other.seatCountInRow);

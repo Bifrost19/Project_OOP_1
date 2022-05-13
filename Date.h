@@ -23,8 +23,6 @@ public:
 	unsigned int getDay() const { return this->day; }
 
 	//Operators
-	Date& operator= (const Date& other);
-
 	bool operator== (const Date& other);
 
 	bool operator> (const Date& other);

@@ -4,16 +4,16 @@
 
 using namespace std;
 
-//Global variables
-Hall* halls = nullptr;
-unsigned int hallCount = 0;
-Event* events = nullptr;
-unsigned int eventCount = 0;
+//Static variables initialization
+Hall* Hall::halls = nullptr;
+unsigned int Hall::hallCount = 0;
+Event* Event::events = nullptr;
+unsigned int Event::eventCount = 0;
 
 void defineHalls()
 {
 	//Halls:
-	hallCount = 5;
+	Hall::hallCount = 5;
 
 	Hall hall1 = Hall(1, 15, 30);
 	Hall hall2 = Hall(2, 20, 35);
@@ -21,21 +21,21 @@ void defineHalls()
 	Hall hall4 = Hall(4, 40, 50);
 	Hall hall5 = Hall(5, 70, 60);
 
-	halls = new (nothrow) Hall[hallCount];
-	if (!halls) throw "Memory problem";
+	Hall::halls = new (nothrow) Hall[Hall::hallCount];
+	if (!Hall::halls) throw "Memory problem";
 
-	halls[0] = hall1;
-	halls[1] = hall2;
-	halls[2] = hall3;
-	halls[3] = hall4;
-	halls[4] = hall5;
+	Hall::halls[0] = hall1;
+	Hall::halls[1] = hall2;
+	Hall::halls[2] = hall3;
+	Hall::halls[3] = hall4;
+	Hall::halls[4] = hall5;
 }
 
 void freeHeapMemory()
 {
 	// Delete all dynamically allocated global variables
-	delete[] halls;
-	delete[] events;
+	delete[] Hall::halls;
+	delete[] Event::events;
 }
 
 //Convertation functions
@@ -155,28 +155,28 @@ void saveEventsToFile()
 	ofstream eventWFile("events.txt");
 	if (!eventWFile.is_open()) throw "The file can't be opened!";
 
-	eventWFile << eventCount << endl;
+	eventWFile << Event::eventCount << endl;
 	eventWFile << "--------------------------------------------" << endl;
 	int eventIterator = 0;
 
-	while (eventIterator < eventCount)
+	while (eventIterator < Event::eventCount)
 	{
-		eventWFile << events[eventIterator].getDate() << endl;
-		eventWFile << events[eventIterator].getName() << endl;
-		eventWFile << events[eventIterator].getHall() << endl;
+		eventWFile << Event::events[eventIterator].getDate() << endl;
+		eventWFile << Event::events[eventIterator].getName() << endl;
+		eventWFile << Event::events[eventIterator].getHall() << endl;
 
-		eventWFile << events[eventIterator].getReservationCount() << endl;
-		unsigned int reservationCount = events[eventIterator].getReservationCount();
+		eventWFile << Event::events[eventIterator].getReservationCount() << endl;
+		unsigned int reservationCount = Event::events[eventIterator].getReservationCount();
 		for (int i = 0; i < reservationCount; i++)
 		{
-			eventWFile << events[eventIterator].getReservations()[i] << endl;
+			eventWFile << Event::events[eventIterator].getReservations()[i] << endl;
 		}
 
-		eventWFile << events[eventIterator].getBoughtSeatCount() << endl;
-		unsigned int boughtSeatCount = events[eventIterator].getBoughtSeatCount();
+		eventWFile << Event::events[eventIterator].getBoughtSeatCount() << endl;
+		unsigned int boughtSeatCount = Event::events[eventIterator].getBoughtSeatCount();
 		for (int i = 0; i < boughtSeatCount; i++)
 		{
-			eventWFile << events[eventIterator].getBoughtSeats()[i] << endl;
+			eventWFile << Event::events[eventIterator].getBoughtSeats()[i] << endl;
 		}
 		eventWFile << "--------------------------------------------" << endl;
 		eventIterator++;
@@ -189,10 +189,10 @@ void readEventsFromFile()
 	ifstream eventRFile("events.txt");
 	if (!eventRFile.is_open()) throw "The file can't be opened!";
 
-	eventRFile >> eventCount;
+	eventRFile >> Event::eventCount;
 
-	events = new (nothrow) Event[eventCount];
-	if (!events) throw "Memory prblem!";
+	Event::events = new (nothrow) Event[Event::eventCount];
+	if (!Event::events) throw "Memory prblem!";
 
 	int eventIterator = 0;
 
@@ -203,7 +203,7 @@ void readEventsFromFile()
 
 	unsigned int invalidEventCount = 0;
 
-	while (eventIterator < eventCount)
+	while (eventIterator < Event::eventCount)
 	{
 		//Date
 		eventRFile.getline(array, 10, '/');
@@ -335,7 +335,7 @@ void readEventsFromFile()
 
 		for (int i = 0; i < eventIterator; i++)
 		{
-			if (events[i].getDate() == event.getDate() && events[i].getHall() == event.getHall())
+			if (Event::events[i].getDate() == event.getDate() && Event::events[i].getHall() == event.getHall())
 			{
 				isThereSameEvent = true;
 				invalidEventCount++;
@@ -344,12 +344,12 @@ void readEventsFromFile()
 		}
 
 		if (!isThereSameEvent)
-		events[eventIterator - invalidEventCount] = event;
+			Event::events[eventIterator - invalidEventCount] = event;
 
 		eventIterator++;
 	}
 
-	eventCount -= invalidEventCount;
+	Event::eventCount -= invalidEventCount;
 	eventRFile.close();
 }
 
@@ -361,11 +361,11 @@ void saveHallsToFile()
 	//Saving the halls
 	int hallsIterator = 0;
 
-	hallsWFile << hallCount << endl;
+	hallsWFile << Hall::hallCount << endl;
 
-	while (hallsIterator < hallCount)
+	while (hallsIterator < Hall::hallCount)
 	{
-		hallsWFile << halls[hallsIterator++] << endl;
+		hallsWFile << Hall::halls[hallsIterator++] << endl;
 	}
 
 	hallsWFile.close();
@@ -377,13 +377,13 @@ void readHallsFromFile()
 	if (!hallsRFile.is_open()) throw "The file can't be opened";
 
 	//Reading halls
-	hallsRFile >> hallCount;
-	halls = new (nothrow) Hall[hallCount];
-	if (!halls) throw "Memory problem!";
+	hallsRFile >> Hall::hallCount;
+	Hall::halls = new (nothrow) Hall[Hall::hallCount];
+	if (!Hall::halls) throw "Memory problem!";
 	unsigned int hallsIterator = 0;
 	unsigned int invalidHallCount = 0;
 	
-	while (hallsIterator < hallCount)
+	while (hallsIterator < Hall::hallCount)
 	{
 		char array[10];
 		//Number
@@ -407,7 +407,7 @@ void readHallsFromFile()
 
 		for (int i = 0; i < hallsIterator; i++)
 		{
-			if (hall.getNumber() == halls[i].getNumber())
+			if (hall.getNumber() == Hall::halls[i].getNumber())
 			{
 				isThereSameHall = true;
 				invalidHallCount++;
@@ -416,12 +416,12 @@ void readHallsFromFile()
 		}
 
 		if (!isThereSameHall)
-			halls[hallsIterator] = hall;
+			Hall::halls[hallsIterator] = hall;
 
 		hallsIterator++;
 	}
 
-	hallCount -= invalidHallCount;
+	Hall::hallCount -= invalidHallCount;
 	hallsRFile.close();
 }
 
@@ -451,21 +451,21 @@ void saveAndLoadHallsAndEventsFromFiles()
 //Help functions
 void copyEventsInBuffer()
 {
-	Event* buffer = new (nothrow) Event[eventCount];
+	Event* buffer = new (nothrow) Event[Event::eventCount];
 	if (!buffer) throw "Memory problem!";
 
-	for (int i = 0; i < eventCount; i++)
+	for (int i = 0; i < Event::eventCount; i++)
 	{
-		buffer[i] = events[i];
+		buffer[i] = Event::events[i];
 	}
 
-	delete[] events;
-	events = new (nothrow) Event[eventCount + 1];
-	if (!events) throw "Memory problem!";
+	delete[] Event::events;
+	Event::events = new (nothrow) Event[Event::eventCount + 1];
+	if (!Event::events) throw "Memory problem!";
 
-	for (int i = 0; i < eventCount; i++)
+	for (int i = 0; i < Event::eventCount; i++)
 	{
-		events[i] = buffer[i];
+		Event::events[i] = buffer[i];
 	}
 
 	delete[] buffer;
@@ -491,10 +491,10 @@ int getIndexOfEvent()
 	cin.ignore();
 
 	//Finds the event matching the arguments
-	for (int i = 0; i < eventCount; i++)
+	for (int i = 0; i < Event::eventCount; i++)
 	{
 
-		if (isThereEventWithSameNameAndDate(events[i], name, date))
+		if (isThereEventWithSameNameAndDate(Event::events[i], name, date))
 		{
 			return i;
 		}
@@ -534,10 +534,10 @@ Reservation createReservation(Event* events, unsigned int eventIndex)
 
 bool isThereExistingReservationWithRowAndSeat(unsigned int eventIndex, const Reservation& reservation)
 {
-	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
+	for (int i = 0; i < Event::events[eventIndex].getReservationCount(); i++)
 	{
-		if (events[eventIndex].getReservations()[i].getRow() == reservation.getRow() &&
-			events[eventIndex].getReservations()[i].getSeat() == reservation.getSeat())
+		if (Event::events[eventIndex].getReservations()[i].getRow() == reservation.getRow() &&
+			Event::events[eventIndex].getReservations()[i].getSeat() == reservation.getSeat())
 			return true;
 	}
 	return false;
@@ -545,11 +545,11 @@ bool isThereExistingReservationWithRowAndSeat(unsigned int eventIndex, const Res
 
 bool isThereExistingReservation(unsigned int eventIndex, Reservation& reservation)
 {
-	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
+	for (int i = 0; i < Event::events[eventIndex].getReservationCount(); i++)
 	{
-		if (events[eventIndex].getReservations()[i] == reservation)
+		if (Event::events[eventIndex].getReservations()[i] == reservation)
 		{
-			reservation = events[eventIndex].getReservations()[i];
+			reservation = Event::events[eventIndex].getReservations()[i];
 			return true;
 		}
 	}
@@ -570,8 +570,8 @@ void transformReservationInBoughtSeat(unsigned int eventIndex, const Reservation
 		return;
 	}
 
-	events[eventIndex].removeReservation(reservation);
-	events[eventIndex].addBoughtSeat(boughtSeat);
+	Event::events[eventIndex].removeReservation(reservation);
+	Event::events[eventIndex].addBoughtSeat(boughtSeat);
 }
 
 //Main functions
@@ -593,29 +593,29 @@ void addNewEvent()
 	do
 	{
 		cin >> hallNumber;
-	} while (hallNumber <= 0 || hallNumber > hallCount);
+	} while (hallNumber <= 0 || hallNumber > Hall::hallCount);
 
 	cin.ignore();
 
-	Hall hall = halls[hallNumber - 1];
+	Hall hall = Hall::halls[hallNumber - 1];
 
 	Event event = Event(date, name, hall);
 
 	//Check if there are already existing events
-	if (eventCount == 0)
+	if (Event::eventCount == 0)
 	{	
-		events = new (nothrow) Event[eventCount + 1];
-		if (!events) throw "Memory problem!";
-		events[eventCount] = event;
-		eventCount++;
+		Event::events = new (nothrow) Event[Event::eventCount + 1];
+		if (!Event::events) throw "Memory problem!";
+		Event::events[Event::eventCount] = event;
+		Event::eventCount++;
 		cout << "The event was added successfully!" << endl;
 		saveEventsToFile();
 	}
 	else
 	{
-		for (int i = 0; i < eventCount; i++)
+		for (int i = 0; i < Event::eventCount; i++)
 		{
-			if (events[i] == event)
+			if (Event::events[i] == event)
 			{
 				cout << "There is another event with these parameters!" << endl;
 				return;
@@ -623,8 +623,8 @@ void addNewEvent()
 		}
 
 		copyEventsInBuffer();
-		events[eventCount] = event;
-		eventCount++;
+		Event::events[Event::eventCount] = event;
+		Event::eventCount++;
 		cout << "The event was added successfully!" << endl;
 		saveEventsToFile();
 	}
@@ -643,13 +643,13 @@ void reserveTicket()
 		return;
 	}
 	
-	Reservation reservation = createReservation(events, eventIndex);
+	Reservation reservation = createReservation(Event::events, eventIndex);
 
 	//Check if the seat is already bought
-	for (int i = 0; i < events[eventIndex].getBoughtSeatCount(); i++)
+	for (int i = 0; i < Event::events[eventIndex].getBoughtSeatCount(); i++)
 	{
-		if (events[eventIndex].getBoughtSeats()[i].getRow() == reservation.getRow()
-			&& events[eventIndex].getBoughtSeats()[i].getSeat() == reservation.getSeat())
+		if (Event::events[eventIndex].getBoughtSeats()[i].getRow() == reservation.getRow()
+			&& Event::events[eventIndex].getBoughtSeats()[i].getSeat() == reservation.getSeat())
 		{
 			cout << "The seat is already bought!" << endl;
 			return;
@@ -669,7 +669,7 @@ void reserveTicket()
 		return;
 	}
 
-	events[eventIndex].addNewReservation(reservation);
+	Event::events[eventIndex].addNewReservation(reservation);
 	cout << "The reservation was made successfully!" << endl;
 	saveEventsToFile();
 }
@@ -689,7 +689,7 @@ void cancelReservation()
 		return;
 	}
 
-	Reservation reservation = createReservation(events, eventIndex);
+	Reservation reservation = createReservation(Event::events, eventIndex);
 
 	//Check if there is already a reservation with these parameters
 	if (!isThereExistingReservation(eventIndex, reservation))
@@ -698,7 +698,7 @@ void cancelReservation()
 		return;
 	}
 
-	events[eventIndex].removeReservation(reservation);
+	Event::events[eventIndex].removeReservation(reservation);
 	cout << "The reservation was cancelled successfully!" << endl;
 	saveEventsToFile();
 }
@@ -723,20 +723,20 @@ void buyTicket()
 	do
 	{
 		cin >> row;
-	} while (row < 0 && row > events[eventIndex].getHall().getRowCount());
+	} while (row < 0 && row > Event::events[eventIndex].getHall().getRowCount());
 
 	cout << "Enter seat: ";
 	do
 	{
 		cin >> seat;
-	} while (seat < 0 && seat > events[eventIndex].getHall().getSeatCountInRow());
+	} while (seat < 0 && seat > Event::events[eventIndex].getHall().getSeatCountInRow());
 
 	BoughtSeat potentialBoughtSeat = BoughtSeat(row, seat);
 
 	//Check if the seat is already bought
-	for (int i = 0; i < events[eventIndex].getBoughtSeatCount(); i++)
+	for (int i = 0; i < Event::events[eventIndex].getBoughtSeatCount(); i++)
 	{
-		if (events[eventIndex].getBoughtSeats()[i] == potentialBoughtSeat)
+		if (Event::events[eventIndex].getBoughtSeats()[i] == potentialBoughtSeat)
 		{
 			cout << "Sorry! This seat is already bought!" << endl;
 			cin.ignore();
@@ -745,12 +745,12 @@ void buyTicket()
 	}
 
 	//Check if the seat is already reserved
-	for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
+	for (int i = 0; i < Event::events[eventIndex].getReservationCount(); i++)
 	{
-		if (events[eventIndex].getReservations()[i].getRow() == potentialBoughtSeat.getRow()
-			&& events[eventIndex].getReservations()[i].getSeat() == potentialBoughtSeat.getSeat())
+		if (Event::events[eventIndex].getReservations()[i].getRow() == potentialBoughtSeat.getRow()
+			&& Event::events[eventIndex].getReservations()[i].getSeat() == potentialBoughtSeat.getSeat())
 		{
-			transformReservationInBoughtSeat(eventIndex, events[eventIndex].getReservations()[i], potentialBoughtSeat);
+			transformReservationInBoughtSeat(eventIndex, Event::events[eventIndex].getReservations()[i], potentialBoughtSeat);
 			cout << "The ticket was bought successfully!" << endl;
 			saveEventsToFile();
 			return;
@@ -758,7 +758,7 @@ void buyTicket()
 	}
 
 	//If the seat is not bought or reserved, it will be bought and added to bought seats
-	events[eventIndex].addBoughtSeat(potentialBoughtSeat);
+	Event::events[eventIndex].addBoughtSeat(potentialBoughtSeat);
 
 	cout << "The ticket was bought successfully!" << endl;
 	saveEventsToFile();
@@ -779,14 +779,14 @@ void printFreeSeatsReport()
 		return;
 	}
 
-	unsigned int freeSeatCount = (events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow())
-								  - events[eventIndex].getReservationCount() - events[eventIndex].getBoughtSeatCount();
+	unsigned int freeSeatCount = (Event::events[eventIndex].getHall().getRowCount() * Event::events[eventIndex].getHall().getSeatCountInRow())
+								  - Event::events[eventIndex].getReservationCount() - Event::events[eventIndex].getBoughtSeatCount();
 
 
 	char fileName[100] = "report-freeseats-";
-	strcat_s(fileName, events[eventIndex].getName());
+	strcat_s(fileName, Event::events[eventIndex].getName());
 	strcat_s(fileName, "-");
-	strcat_s(fileName, convertFromDateToString(events[eventIndex].getDate()));
+	strcat_s(fileName, convertFromDateToString(Event::events[eventIndex].getDate()));
 	strcat_s(fileName, ".txt");
 
 	ofstream freeSeatsReportFile(fileName);
@@ -794,9 +794,9 @@ void printFreeSeatsReport()
 	if (!freeSeatsReportFile.is_open()) throw "A file with such name can't be opened!";
 
 	freeSeatsReportFile << "*Report for free seats*" << endl;
-	freeSeatsReportFile << events[eventIndex].getName() << "|" << convertFromDateToString(events[eventIndex].getDate()) << ":" << endl;
+	freeSeatsReportFile << Event::events[eventIndex].getName() << "|" << convertFromDateToString(Event::events[eventIndex].getDate()) << ":" << endl;
 	freeSeatsReportFile << "Count of free seats: " << freeSeatCount << " of " <<
-							(events[eventIndex].getHall().getRowCount() * events[eventIndex].getHall().getSeatCountInRow()) << endl;
+							(Event::events[eventIndex].getHall().getRowCount() * Event::events[eventIndex].getHall().getSeatCountInRow()) << endl;
 
 	freeSeatsReportFile.close();
 }
@@ -826,16 +826,16 @@ void printReservationReport()
 
 		//Writing to the file
 		reservationReport << "*Report for reservations*" << endl;
-		for (int i = 0; i < eventCount; i++)
+		for (int i = 0; i < Event::eventCount; i++)
 		{
-			reservationReport << events[i].getName() << "|" << events[i].getDate() << " :" << endl;
+			reservationReport << Event::events[i].getName() << "|" << Event::events[i].getDate() << " :" << endl;
 
-			for (int j = 0; j < events[i].getReservationCount(); j++)
+			for (int j = 0; j < Event::events[i].getReservationCount(); j++)
 			{
-				reservationReport << (j + 1) << ". " << "Row: " << events[i].getReservations()[j].getRow() << "|Seat: "
-								  << events[i].getReservations()[j].getSeat() << "|Password: "
-								  << events[i].getReservations()[j].getPassword() << "|Note: "
-								  << events[i].getReservations()[j].getNote() << endl;
+				reservationReport << (j + 1) << ". " << "Row: " << Event::events[i].getReservations()[j].getRow() << "|Seat: "
+								  << Event::events[i].getReservations()[j].getSeat() << "|Password: "
+								  << Event::events[i].getReservations()[j].getPassword() << "|Note: "
+								  << Event::events[i].getReservations()[j].getNote() << endl;
 			}
 			reservationReport << "-----------------------------------" << endl;
 		}
@@ -856,18 +856,18 @@ void printReservationReport()
 			if (!reservationReport.is_open()) throw "A file with such name can't be opened!";
 
 			reservationReport << "*Report for reservations*" << endl;
-			for (int i = 0; i < eventCount; i++)
+			for (int i = 0; i < Event::eventCount; i++)
 			{
-				if (events[i].getDate() == date)
+				if (Event::events[i].getDate() == date)
 				{
-					reservationReport << events[i].getName() << "|" << events[i].getDate() << " :" << endl;
+					reservationReport << Event::events[i].getName() << "|" << Event::events[i].getDate() << " :" << endl;
 
-					for (int j = 0; j < events[i].getReservationCount(); j++)
+					for (int j = 0; j < Event::events[i].getReservationCount(); j++)
 					{
-						reservationReport << (j + 1) << ". " << "Row: " << events[i].getReservations()[j].getRow() << "|Seat: "
-							<< events[i].getReservations()[j].getSeat() << "|Password: "
-							<< events[i].getReservations()[j].getPassword() << "|Note: "
-							<< events[i].getReservations()[j].getNote() << endl;
+						reservationReport << (j + 1) << ". " << "Row: " << Event::events[i].getReservations()[j].getRow() << "|Seat: "
+							<< Event::events[i].getReservations()[j].getSeat() << "|Password: "
+							<< Event::events[i].getReservations()[j].getPassword() << "|Note: "
+							<< Event::events[i].getReservations()[j].getNote() << endl;
 					}
 					reservationReport << "-----------------------------------" << endl;
 				}
@@ -880,10 +880,10 @@ void printReservationReport()
 			int eventIndex = -1;
 
 			//Finds the event matching the arguments
-			for (int i = 0; i < eventCount; i++)
+			for (int i = 0; i < Event::eventCount; i++)
 			{
 
-				if (isThereEventWithSameNameAndDate(events[i], name, date))
+				if (isThereEventWithSameNameAndDate(Event::events[i], name, date))
 				{
 					eventIndex = i;
 				}
@@ -909,14 +909,14 @@ void printReservationReport()
 	
 			//Writing to the file
 			reservationReport << "*Report for reservations*" << endl;
-			reservationReport << events[eventIndex].getName() << "|" << events[eventIndex].getDate() << " :" << endl;
+			reservationReport << Event::events[eventIndex].getName() << "|" << Event::events[eventIndex].getDate() << " :" << endl;
 
-			for (int i = 0; i < events[eventIndex].getReservationCount(); i++)
+			for (int i = 0; i < Event::events[eventIndex].getReservationCount(); i++)
 			{
-				reservationReport << (i + 1) << ". " << "Row: " << events[eventIndex].getReservations()[i].getRow() << "|Seat: "
-					<< events[eventIndex].getReservations()[i].getSeat() << "|Password: "
-					<< events[eventIndex].getReservations()[i].getPassword() << "|Note: "
-					<< events[eventIndex].getReservations()[i].getNote() << endl;
+				reservationReport << (i + 1) << ". " << "Row: " << Event::events[eventIndex].getReservations()[i].getRow() << "|Seat: "
+					<< Event::events[eventIndex].getReservations()[i].getSeat() << "|Password: "
+					<< Event::events[eventIndex].getReservations()[i].getPassword() << "|Note: "
+					<< Event::events[eventIndex].getReservations()[i].getNote() << endl;
 			}
 			reservationReport << "-----------------------------------" << endl;
 
@@ -938,7 +938,7 @@ void printBoughtTicketsReport()
 	do
 	{
 		cin.getline(hallStr, 4);
-	} while ((toInt(hallStr) <= 0 || toInt(hallStr) > hallCount) && strcmp(hallStr, "ALL"));
+	} while ((toInt(hallStr) <= 0 || toInt(hallStr) > Hall::hallCount) && strcmp(hallStr, "ALL"));
 
 	cout << "Enter the first date: ";
 	cin >> firstDate;
@@ -971,18 +971,18 @@ void printBoughtTicketsReport()
 		boughtTicketsReportFile << firstDate.getYear() << "/" << firstDate.getMonth() << "/" << firstDate.getDay() << "-"
 			<< secondDate.getYear() << "/" << secondDate.getMonth() << "/" << secondDate.getDay() << endl;
 
-		for (int i = 0; i < hallCount; i++)
+		for (int i = 0; i < Hall::hallCount; i++)
 		{
 			boughtTicketsReportFile << "Hall No: " << (i + 1) << ": " << endl;
 			int eventCounter = 0;
-			for (int j = 0; j < eventCount; j++)
+			for (int j = 0; j < Event::eventCount; j++)
 			{
-				if (events[j].getHall() == halls[i] && ((events[j].getDate() > firstDate
-					&& events[j].getDate() < secondDate) || events[j].getDate() == firstDate || events[j].getDate() == secondDate))
+				if (Event::events[j].getHall() == Hall::halls[i] && ((Event::events[j].getDate() > firstDate
+					&& Event::events[j].getDate() < secondDate) || Event::events[j].getDate() == firstDate || Event::events[j].getDate() == secondDate))
 				{
 					eventCounter++;
-					boughtTicketsReportFile << eventCounter << ". " << events[j].getName() << "|" << events[j].getDate() <<
-						"|Count of bought tickets: " << events[j].getBoughtSeatCount() << endl;
+					boughtTicketsReportFile << eventCounter << ". " << Event::events[j].getName() << "|" << Event::events[j].getDate() <<
+						"|Count of bought tickets: " << Event::events[j].getBoughtSeatCount() << endl;
 				}
 			}
 			boughtTicketsReportFile << "---------------------------------------------------------" << endl;
@@ -992,7 +992,7 @@ void printBoughtTicketsReport()
 	}
 	else
 	{
-		Hall hall = halls[toInt(hallStr) - 1];
+		Hall hall = Hall::halls[toInt(hallStr) - 1];
 
 		char fileName[100] = "report-boughttickets-hall-";
 		strcat_s(fileName, hallStr);
@@ -1011,14 +1011,14 @@ void printBoughtTicketsReport()
 		boughtTicketsReportFile << "Hall No: " << hallStr << ": " << endl;
 		int eventCounter = 0;
 
-		for (int i = 0; i < eventCount; i++)
+		for (int i = 0; i < Event::eventCount; i++)
 		{
-			if (events[i].getHall() == hall && ((events[i].getDate() > firstDate
-				&& events[i].getDate() < secondDate) || events[i].getDate() == firstDate || events[i].getDate() == secondDate))
+			if (Event::events[i].getHall() == hall && ((Event::events[i].getDate() > firstDate
+				&& Event::events[i].getDate() < secondDate) || Event::events[i].getDate() == firstDate || Event::events[i].getDate() == secondDate))
 			{
 				eventCounter++;
-				boughtTicketsReportFile << eventCounter << ". " << events[i].getName() << "|" << events[i].getDate() <<
-					"|Count of bought tickets: " << events[i].getBoughtSeatCount() << endl;
+				boughtTicketsReportFile << eventCounter << ". " << Event::events[i].getName() << "|" << Event::events[i].getDate() <<
+					"|Count of bought tickets: " << Event::events[i].getBoughtSeatCount() << endl;
 			}
 		}
 
@@ -1032,12 +1032,12 @@ void printMostWatchedEventsReport()
 	cout << endl << "---------Report for most watched events-----------------" << endl;
 
 	//Create buffer array to store the events
-	Event* sortedEvents = new (nothrow) Event[eventCount];
+	Event* sortedEvents = new (nothrow) Event[Event::eventCount];
 	if (!sortedEvents) throw "Memory problem!";
 
-	for (int i = 0; i < eventCount; i++)
+	for (int i = 0; i < Event::eventCount; i++)
 	{
-		sortedEvents[i] = events[i];
+		sortedEvents[i] = Event::events[i];
 	}
 
 	bool isEventsSorted = false;
@@ -1047,9 +1047,9 @@ void printMostWatchedEventsReport()
 	{
 		isEventsSorted = true;
 
-		for (int i = 0; i < eventCount; i++)
+		for (int i = 0; i < Event::eventCount; i++)
 		{
-			if (i != eventCount - 1 && sortedEvents[i].getBoughtSeatCount() < sortedEvents[i + 1].getBoughtSeatCount())
+			if (i != Event::eventCount - 1 && sortedEvents[i].getBoughtSeatCount() < sortedEvents[i + 1].getBoughtSeatCount())
 			{
 				Event prevBufferEvent = Event(sortedEvents[i].getDate(), sortedEvents[i].getName(), sortedEvents[i].getHall());
 				sortedEvents[i] = sortedEvents[i + 1];
@@ -1063,7 +1063,7 @@ void printMostWatchedEventsReport()
 	ofstream mostWatchedEventsReportFile("report-mostWatchedEvents.txt");
 	if (!mostWatchedEventsReportFile.is_open()) throw "A file with such name can't be opened!";
 
-	int counter = (eventCount < 3) ? eventCount : 3;
+	int counter = (Event::eventCount < 3) ? Event::eventCount : 3;
 
 	//Writing to the file
 	mostWatchedEventsReportFile << "*Report for most watched events*" << endl;
@@ -1072,7 +1072,7 @@ void printMostWatchedEventsReport()
 	{
 		mostWatchedEventsReportFile << (i + 1) << ". " << sortedEvents[i].getName() << "|" << sortedEvents[i].getDate()
 								   << "| " << "Count of bought tickets: " << sortedEvents[i].getBoughtSeatCount() << " of "
-								   << events[i].getHall().getRowCount() * events[i].getHall().getSeatCountInRow() << endl;
+								   << Event::events[i].getHall().getRowCount() * Event::events[i].getHall().getSeatCountInRow() << endl;
 	}
 
 	delete[] sortedEvents;
@@ -1106,15 +1106,15 @@ void printEventsWithUnder10PercentReport()
 	eventsWithUnder10PercentReportFile << firstDate.getYear() << "/" << firstDate.getMonth() << "/" << firstDate.getDay() << "-"
 		<< secondDate.getYear() << "/" << secondDate.getMonth() << "/" << secondDate.getDay() << endl;
 
-	for (int i = 0; i < eventCount; i++)
+	for (int i = 0; i < Event::eventCount; i++)
 	{
-		int allSeatCount = events[i].getHall().getRowCount() * events[i].getHall().getSeatCountInRow();
+		int allSeatCount = Event::events[i].getHall().getRowCount() * Event::events[i].getHall().getSeatCountInRow();
 
-		if (((events[i].getDate() > firstDate&& events[i].getDate() < secondDate) || events[i].getDate() == firstDate
-			|| events[i].getDate() == secondDate) && events[i].getBoughtSeatCount() < (0.1 * allSeatCount))
+		if (((Event::events[i].getDate() > firstDate&& Event::events[i].getDate() < secondDate) || Event::events[i].getDate() == firstDate
+			|| Event::events[i].getDate() == secondDate) && Event::events[i].getBoughtSeatCount() < (0.1 * allSeatCount))
 		{
-			eventsWithUnder10PercentReportFile << (i + 1) << ". " << events[i].getName() << "|" << events[i].getDate()
-				<< "| " << "Count of bought tickets: " << events[i].getBoughtSeatCount() << " of "
+			eventsWithUnder10PercentReportFile << (i + 1) << ". " << Event::events[i].getName() << "|" << Event::events[i].getDate()
+				<< "| " << "Count of bought tickets: " << Event::events[i].getBoughtSeatCount() << " of "
 				<< allSeatCount << endl;
 		}
 	}
