@@ -1043,6 +1043,8 @@ void printMostWatchedEventsReport()
 	bool isEventsSorted = false;
 
 	//Sort the events by count of bought tickets
+	Event prevBufferEvent;
+
 	while (!isEventsSorted)
 	{
 		isEventsSorted = true;
@@ -1051,7 +1053,7 @@ void printMostWatchedEventsReport()
 		{
 			if (i != Event::eventCount - 1 && sortedEvents[i].getBoughtSeatCount() < sortedEvents[i + 1].getBoughtSeatCount())
 			{
-				Event prevBufferEvent = Event(sortedEvents[i].getDate(), sortedEvents[i].getName(), sortedEvents[i].getHall());
+				prevBufferEvent = sortedEvents[i];
 				sortedEvents[i] = sortedEvents[i + 1];
 				sortedEvents[i + 1] = prevBufferEvent;
 				isEventsSorted = false;
@@ -1072,7 +1074,7 @@ void printMostWatchedEventsReport()
 	{
 		mostWatchedEventsReportFile << (i + 1) << ". " << sortedEvents[i].getName() << "|" << sortedEvents[i].getDate()
 								   << "| " << "Count of bought tickets: " << sortedEvents[i].getBoughtSeatCount() << " of "
-								   << Event::events[i].getHall().getRowCount() * Event::events[i].getHall().getSeatCountInRow() << endl;
+								   << sortedEvents[i].getHall().getRowCount() * sortedEvents[i].getHall().getSeatCountInRow() << endl;
 	}
 
 	delete[] sortedEvents;
